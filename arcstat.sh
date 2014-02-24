@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "This will display the cache hit and miss ratio's."
 echo "for a time limited run (in seconds) add a number of seconds behind this command"
 printf "\n\n"
@@ -10,6 +9,7 @@ echo "|-------------------------------------------------------------------------
 printf '\e[0m'
 #create counter variable
 count=0
+zero=0
 if [ -z $VAR2 ];then
         VAR2=1000000
 fi
@@ -34,14 +34,20 @@ do
         l1hitp=`echo scale=3\; '100*'$l1hits/$l1read''|bc -l`
 
         l2sizeb=`awk '/l2_size/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
-        l2size=`echo $l2sizeb/1024/1024/1024|bc`
-        l2miss=`awk '/l2_misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
-        l2hits=`awk '/l2_hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
-        l2read=`echo $l2hits+$l2miss|bc`
-        l2hitp=`echo scale=3\; '100*'$l2hits/$l2read''|bc -l`
+	if [[ `echo $l2sizeb` -ne $zero ]];then 
+	        l2size=`echo $l2sizeb/1024/1024/1024|bc`
+	      	l2miss=`awk '/l2_misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	        l2hits=`awk '/l2_hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	        l2read=`echo $l2hits+$l2miss|bc`
+	        l2hitp=`echo scale=3\; '100*'$l2hits/$l2read''|bc -l`
 
 
-        printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-2s %-4s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \| $l2read $l2miss $l2hits $l2hitp% $l2size GB \|
+	        printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-2s %-4s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \| $l2read $l2miss $l2hits $l2hitp% $l2size GB \|
+	else
+        	printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-2s %-4s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \|
+	fi
+	
+
         sleep 1
 done
 
