@@ -1,6 +1,6 @@
-zfs-stats-linux
+zfs-arcstats-bash
 ===============
-Arcstats from zfs
+Arcstats from zfs written in BASH, based on the perl script (a bit)
 
 * ADDED updated column showing disk read access in percentage against the caches.
   (only works if you have l2arc enabled).
