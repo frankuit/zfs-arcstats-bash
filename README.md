@@ -2,7 +2,8 @@ zfs-stats-linux
 ===============
 Arcstats from zfs
 
-* REMOVED column showing disk-access as it was flawd..
+* ADDED updated column showing disk read access in percentage against the caches.
+  (only works if you have l2arc enabled).
 
 Various bash scripts and tools for ZFS on linux 
 Tested on:
