@@ -1,0 +1,94 @@
+#!/bin/bash
+echo "This will display the cache hit and miss ratio's."
+echo "for a time limited run (in seconds) add a number of seconds behind this command"
+printf "\n\n"
+printf '\e[33m'
+echo "|---------------------------------------------------------------------------------------------------------------------|"
+printf '%-11s %-10s %-10s %-10s %-5s %-2s %-10s %-10s %-10s %-10s %-6s %-2s %-2s %-5s %-3s \n' \|l1reads l1miss l1hits l1hit% size \| l2reads l2misses l2hits l2hit% size disk_access%  \|
+echo "|---------------------------------------------------------------------------------------------------------------------|"
+printf '\e[0m'
+#create counter variable
+count=0
+zero=0
+if [ -z $VAR2 ];then
+        VAR2=1000000
+fi
+while [ $count -le $VAR2 ]
+do
+        #increase counter by 1
+        count=`echo $count+1|bc`
+        if [ "$count" == "25" ];then
+        printf '\e[33m'
+        echo "|---------------------------------------------------------------------------------------------------------------------|"
+        printf '%-11s %-10s %-10s %-10s %-5s %-2s %-10s %-10s %-10s %-10s %-6s %-2s %-2s %-5s %-3s \n' \|l1reads l1miss l1hits l1hit% size \| l2reads l2misses l2hits l2hit% size disk_access%  \|
+        echo "|---------------------------------------------------------------------------------------------------------------------|"
+        printf '\e[0m'
+                count=1
+        fi
+	#is there l2arc ?
+        l2sizeb=`awk '/l2_size/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+
+	#READ DATA AND REMEMBER FOR 1 SEC
+        l1miss1=`awk '/^misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+        l1hits1=`awk '/^hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+        l1read1=`echo $l1hits1+$l1miss1 |bc`
+
+	if [[ `echo $l2sizeb` -ne $zero ]];then 
+	      l2miss1=`awk '/l2_misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	      l2hits1=`awk '/l2_hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	      l2read1=`echo $l2hits1+$l2miss1|bc`
+	fi
+	sleep 1
+	#READ DATA AGAIN FOR COMPARISON
+        l1miss2=`awk '/^misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+        l1hits2=`awk '/^hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+        l1read2=`echo $l1hits2+$l1miss2 |bc`
+	
+	#do math and calculate access and misses for arc1
+        l1miss=`echo scale=3\; $l1miss2-$l1miss1|bc -l`
+        l1hits=`echo scale=3\; $l1hits2-$l1hits1|bc -l`
+        l1read=`echo scale=3\; $l1read2-$l1read1|bc -l`
+	#devision by zero error fixorrr
+                if  [[ `echo $l1hits` -ne $zero ]];then
+                        l1hitp=`echo scale=3\; '100*'$l1hits/$l1read''|bc -l`
+                else
+                        l1hitp=0
+                fi
+
+        l1sizeb=`awk '/^size/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+        l1size=`echo $l1sizeb/1024/1024/1024|bc`
+
+	if [[ `echo $l2sizeb` -ne $zero ]];then 
+	      	l2miss2=`awk '/l2_misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	        l2hits2=`awk '/l2_hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	        l2read2=`echo $l2hits2+$l2miss2|bc`
+	      	
+		l2miss=`echo scale=3\; $l2miss2-$l2miss1|bc -l`
+	        l2hits=`echo scale=3\; $l2hits2-$l2hits1|bc -l`
+	        l2read=`echo scale=3\; $l2read2-$l2read1|bc -l`
+		#devision by zero error fixorrr
+		if  [[ `echo $l2hits` -ne $zero ]];then
+			l2hitp=`echo scale=3\; '100*'$l2hits/$l2read''|bc -l`
+		else
+			l2hitp=0
+		fi
+
+		l2size=`echo $l2sizeb/1024/1024/1024|bc`
+
+		if  [[ `echo $l2read` -ne $zero ]];then
+	        	cachep=`echo scale=3\; '100*'$l2miss/$l1read|bc -l`
+		else
+			cachep=0
+		fi
+		#diska=`echo scale=3\; '100-'$cachep|bc -l`
+		diska=$cachep
+
+
+	        printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \| $l2read $l2miss $l2hits $l2hitp% ${l2size}GB $diska% \|
+	else
+        	printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \|
+	fi
+	
+
+done
+
