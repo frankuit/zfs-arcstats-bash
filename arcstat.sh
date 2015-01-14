@@ -40,8 +40,10 @@ do
 	        l2hits=`awk '/l2_hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
 	        l2read=`echo $l2hits+$l2miss|bc`
 	        l2hitp=`echo scale=3\; '100*'$l2hits/$l2read''|bc -l`
-	        cachep=`echo scale=3\; $l2hitp'/100+'$l1hitp|bc -l`
-		diska=`echo scale=3\; '100-'$cachep|bc -l`
+
+		cachep=`echo scale=3\; '100*'$l2miss/$l1read|bc -l`
+#	        cachep=`echo scale=3\; $l2hitp'/100+'$l1hitp|bc -l`
+		diska=$cachep
 
 
 	        printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \| $l2read $l2miss $l2hits $l2hitp% ${l2size}GB $diska% \|
