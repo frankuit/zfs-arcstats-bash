@@ -80,9 +80,7 @@ do
 		else
 			cachep=0
 		fi
-		#diska=`echo scale=3\; '100-'$cachep|bc -l`
 		diska=$cachep
-
 
 	        printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-3s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' $l1read $l1miss $l1hits $l1hitp% $l1size GB \| $l2read $l2miss $l2hits $l2hitp% ${l2size}GB $diska% \|
 	else
