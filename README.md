@@ -13,4 +13,3 @@ Tested on:
 -Ubuntu 32 and 64 bit (12.04 lts)
 
 Place in /usr/local/bin, chmod +xxx /usr/local/bin/arcstats.sh and launch
-
